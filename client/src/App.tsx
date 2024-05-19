@@ -1,35 +1,62 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from "react";
+import "./App.css";
+
+
+//Just Make it what you are sending from backend and saving in state:
+type TDeck = {
+  title: string;
+  _id: string;
+};
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [title, setTitle] = useState<string>("");
+  const [deck, setDeck] = useState<TDeck[]>([]);
+
+  async function handleCreateDeck(e: React.FormEvent) {
+    e.preventDefault();
+    const res = await fetch("http://localhost:4999/api/deckcreateDeck", {
+      method: "POST",
+      body: JSON.stringify({ title }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await res.json();
+    console.log(data);
+    setTitle("");
+  }
+
+  useEffect(() => {
+    async function fetchAllDecks() {
+      const res = await fetch("http://localhost:4999/api/deck/getDecks");
+      const data = await res.json();
+      setDeck(data);
+      console.log(data);
+    }
+
+    fetchAllDecks();
+  }, []);
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+      <form>
+        <label htmlFor="deck">Deck</label>
+        <input
+          type="text"
+          id="deck"
+          value={title}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+            setTitle(e.target.value);
+          }}
+        />
+        <button type="submit" onClick={(e) => handleCreateDeck(e)}>
+          Create Deck
         </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      </form>
+
+
     </>
-  )
+  );
 }
 
-export default App
+export default App;
